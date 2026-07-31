@@ -1,0 +1,14 @@
+title: 江浙沪9日旅游计划
+theme: jekyll-theme-slate
+collections:
+  itineraries:
+    output: true
+
+defaults:
+  - scope:
+      path: ""
+      type: itineraries
+    values:
+      layout: itinerary
+
+markdown: kramdown
