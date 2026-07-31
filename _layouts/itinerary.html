@@ -1,43 +1,110 @@
----
-layout: default
----
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>{{ page.title | default: site.title }}</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/glightbox/dist/css/glightbox.min.css" />
+</head>
+<body>
+  <header class="site-header container">
+    <div class="site-title">
+      <a href="/">{{ site.title }}</a>
+    </div>
+    <nav class="site-nav">
+      <a href="{{ site.github.url | default: 'https://github.com/Cedric-01/9-day-travel-itinerary-for-JZH' }}" target="_blank" rel="noopener">View on GitHub</a>
+    </nav>
+  </header>
 
-<a class="edit-link" href="https://github.com/Cedric-01/9-day-travel-itinerary-for-JZH/edit/main/{{ page.path }}">编辑此页面</a>
-<h1 class="it-title">{{ page.title }}</h1>
-<p class="it-dates">{{ page.start_date }}{% if page.end_date %} — {{ page.end_date }}{% endif %}</p>
+  <main class="container site-main">
+    <a class="edit-link" href="https://github.com/Cedric-01/9-day-travel-itinerary-for-JZH/edit/main/{{ page.path }}">编辑此页面</a>
+    <h1 class="it-title">{{ page.title }}</h1>
+    <p class="it-dates">{{ page.start_date }}{% if page.end_date %} — {{ page.end_date }}{% endif %}</p>
 
-<div id="map"></div>
+    <div id="map" aria-label="地图：{{ page.title }}"></div>
 
-<div class="content">
-  {{ content }}
-</div>
+    <div class="content">
+      {{ content }}
 
-<script>
+      {% if page.photos and page.photos.size > 0 %}
+        <div class="gallery">
+          {% for p in page.photos %}
+            <a href="{{ p }}" class="glightbox" data-gallery="it-gallery">
+              <img src="{{ p }}" alt="{{ page.title }} - 图片 {{ forloop.index }}" loading="lazy">
+            </a>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+    </div>
+  </main>
+
+  <footer class="site-footer container">
+    <p>{{ site.title }} maintained by <a href="{{ site.github.url | default: 'https://github.com/Cedric-01' }}">{{ site.author | default: 'Cedric-01' }}</a></p>
+    <p>Published with <a href="https://pages.github.com/">GitHub Pages</a></p>
+  </footer>
+
+  <script>
+  // Lazy-load Leaflet and initialize map when #map is in view
   (function() {
-    if (typeof page === 'undefined') {
-      // noop
+    function initMap() {
+      try {
+        const locations = {{ page.locations | jsonify }};
+        if (!locations || locations.length === 0) return;
+        const first = locations[0];
+        const map = L.map('map').setView([first.lat, first.lng], 10);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+        locations.forEach(l => {
+          L.marker([l.lat, l.lng]).addTo(map).bindPopup('<strong>' + (l.name||'') + '</strong>' + (l.note ? ('<br>' + l.note) : ''));
+        });
+        const bounds = L.latLngBounds(locations.map(l => [l.lat, l.lng]));
+        if (locations.length > 1) map.fitBounds(bounds, { padding: [40, 40] });
+      } catch (e) {
+        console.warn('Map init skipped or failed', e);
+      }
     }
-    try {
-      const locations = {{ page.locations | jsonify }};
-      if (!locations || locations.length === 0) return;
 
-      const first = locations[0];
-      const map = L.map('map').setView([first.lat, first.lng], 10);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors'
-      }).addTo(map);
+    function ensureLeafletAndInit() {
+      if (typeof L === 'undefined') {
+        var s = document.createElement('script');
+        s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+        s.onload = initMap;
+        document.body.appendChild(s);
+      } else {
+        initMap();
+      }
+    }
 
-      locations.forEach(l => {
-        const marker = L.marker([l.lat, l.lng]).addTo(map);
-        const popupHtml = '<strong>' + (l.name||'') + '</strong>' + (l.note ? ('<br>' + l.note) : '');
-        marker.bindPopup(popupHtml);
-      });
-
-      const bounds = L.latLngBounds(locations.map(l => [l.lat, l.lng]));
-      if (locations.length > 1) map.fitBounds(bounds, { padding: [40, 40] });
-    } catch (e) {
-      // If page.locations is not defined, skip silently
-      console.warn('No locations for map or map init failed', e);
+    var mapEl = document.getElementById('map');
+    if (!mapEl) return;
+    if ('IntersectionObserver' in window) {
+      var io = new IntersectionObserver(function(entries, obs) {
+        entries.forEach(function(entry) {
+          if (entry.isIntersecting) {
+            ensureLeafletAndInit();
+            obs.disconnect();
+          }
+        });
+      }, { rootMargin: '200px' });
+      io.observe(mapEl);
+    } else {
+      ensureLeafletAndInit();
     }
   })();
-</script>
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/glightbox/dist/js/glightbox.min.js"></script>
+  <script>
+    // Initialize GLightbox for photo gallery
+    document.addEventListener('DOMContentLoaded', function () {
+      if (typeof GLightbox !== 'undefined') {
+        GLightbox({ selector: '.glightbox' });
+      }
+    });
+  </script>
+</body>
+</html>

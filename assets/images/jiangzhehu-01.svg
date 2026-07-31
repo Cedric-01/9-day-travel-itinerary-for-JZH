@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1200" height="800" viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="g" x1="0" x2="1">
+      <stop offset="0" stop-color="#7ad0c6"/>
+      <stop offset="1" stop-color="#4da7a0"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="800" fill="#f7faf9"/>
+  <g transform="translate(80,80)">
+    <rect x="0" y="480" width="1040" height="180" rx="12" fill="url(#g)" opacity="0.12"/>
+    <circle cx="200" cy="360" r="90" fill="#ffd27f"/>
+    <path d="M60 480 Q200 300 340 480 T620 480" fill="#fff" opacity="0.8"/>
+    <text x="60" y="70" font-size="48" fill="#0b4f4c" font-family="sans-serif">江浙沪 9 日游</text>
+    <text x="60" y="120" font-size="20" fill="#2d6a67">示例封面图 — 可替换为实拍照片</text>
+  </g>
+</svg>
