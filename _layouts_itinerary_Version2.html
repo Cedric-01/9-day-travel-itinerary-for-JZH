@@ -1,0 +1,48 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>{{ page.title }}</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <style>#map { height: 360px; margin-bottom: 1rem; }</style>
+</head>
+<body>
+  <main class="container">
+    <a href="/">← 返回</a>
+    <h1>{{ page.title }}</h1>
+    <p>{{ page.start_date }} — {{ page.end_date }}</p>
+
+    <div id="map"></div>
+
+    <div class="content">
+      {{ content }}
+    </div>
+  </main>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    (function() {
+      const locations = {{ page.locations | jsonify }};
+      if (!locations || locations.length === 0) return;
+
+      const first = locations[0];
+      const map = L.map('map').setView([first.lat, first.lng], 10);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+      }).addTo(map);
+
+      locations.forEach(l => {
+        const marker = L.marker([l.lat, l.lng]).addTo(map);
+        const popupHtml = '<strong>' + (l.name||'') + '</strong>' + (l.note ? ('<br>' + l.note) : '');
+        marker.bindPopup(popupHtml);
+      });
+
+      // Fit bounds
+      const bounds = L.latLngBounds(locations.map(l => [l.lat, l.lng]));
+      if (locations.length > 1) map.fitBounds(bounds, { padding: [40, 40] });
+    })();
+  </script>
+</body>
+</html>
